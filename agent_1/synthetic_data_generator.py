@@ -79,16 +79,16 @@ def draft_critique(state:AgentState):
     return {"draft_critiques":critiques}
 
 def is_plan_good(state):
-    if len(state["plan_critiques"]) >0:
+    if len(state["plan_critiques"]>0) :
         return "planner"
     else :
         return "doc_generator"
 
 def is_docs_good(state):
-    if len(state["draft_critiques"]) >0:
-        return "doc_generator"
+    if len(state["draft_critiques"]>0) :
+        return "planner"
     else :
-        return END
+        return "doc_generator"
 
 
 builder = StateGraph(AgentState)
