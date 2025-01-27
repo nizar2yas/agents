@@ -1,1 +1,1 @@
-google-cloud-aiplatform langgraph langchain_openai langchain_google_vertexai pygraphviz langgraph-checkpoint-sqlite python-certifi-win32
+google-cloud-aiplatform langgraph langchain_openai langchain_google_vertexai pygraphviz langgraph-checkpoint-sqlite python-certifi-win32 unstructured "unstructured[pdf, md]" langchain_postgres
