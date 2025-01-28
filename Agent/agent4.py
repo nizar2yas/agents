@@ -4,20 +4,11 @@ from langchain_google_vertexai import ChatVertexAI
 from typing import TypedDict, Annotated
 from langgraph.graph import START, StateGraph, END
 from langgraph.graph.message import add_messages
-from langchain.tools.retriever import create_retriever_tool
-from utils import get_retrieval_from_vstore, check_stock, notify_technicien, get_retriever_tool
-from langchain_core.tools import tool
-from langgraph.checkpoint.memory import MemorySaver
+from utils import *
 from langgraph.prebuilt import ToolNode
 # from langgraph.prebuilt import tools_condition
 from langchain_core.messages import SystemMessage, HumanMessage
-import pprint
-import sqlite3
-
-db_path = 'checkpoints.db'
-conn = sqlite3.connect(db_path, check_same_thread=False)
-
-memory = SqliteSaver(conn)
+from langgraph.checkpoint.memory import MemorySaver
 
 plan_prompt = """
     Based on the given context develop an execution plan of what need to be done to repair the machine.
@@ -28,34 +19,21 @@ plan_prompt = """
 system_promp = """
 You are an AI assistant at machines' maintenance and reparation.
 you will receive notification code send from the machines, investigate the code and do everything needed to handle it.
+give detailed instruction of what need to be done.
+execute the task in sequence not in parallel.
 """
 
 retriever = get_retrieval_from_vstore()
-agent_tools = [check_stock, notify_technicien, get_retriever_tool(retriever)]
+agent_tools = [check_stock, notify_technicien, get_retriever_tool(retriever), order_item]
 model = ChatVertexAI(model="gemini-1.5-flash-002", temperature=0)
 llm_with_tools = model.bind_tools(agent_tools)
 
 class State(TypedDict):
     messages: Annotated[list, add_messages]
-    context: str
-    plan: str
 
 def agent(state: State):
     response = llm_with_tools.invoke(state["messages"])
-    # docs ="\n\n".join(doc.page_content for doc in response)
     return {"messages":response} 
-
-def run_tasks(state: State):
-    resp = llm_with_tools.invoke(state["messages"])
-    return {"messages":resp}
-
-def plan_node(state: State):
-    if "plan" not in state or not state["plan"]:
-        content = plan_prompt.format(context=state["messages"][-1].content)
-        resp = llm_with_tools.invoke(content)
-        return {"plan":resp}
-    else: 
-        return
 
 def route_tools(state: State):
     if isinstance(state, list):
@@ -69,18 +47,16 @@ def route_tools(state: State):
     return END
 
 def build_agent():
+    memory = MemorySaver()
+
     tool_node = ToolNode(agent_tools)
     builder = StateGraph(State)
 
     builder.add_node("generate", agent)
     builder.add_node("tools", tool_node)
-    # builder.add_node("plan_node", plan_node)
 
     builder.add_edge(START, "generate")
     builder.add_edge("tools", "generate")
-    # builder.add_edge("plan_node", "generate")
-    # builder.add_edge("tools","plan_node")
-    # builder.add_edge("plan_node","generate")
 
     builder.add_conditional_edges(
     "generate",
@@ -88,27 +64,22 @@ def build_agent():
     {"tools":"tools",END:END}
     )
 
-    # builder.add_conditional_edges(
-    # "plan_node",
-    # route_tools,
-    # {"tools":"tools",END:END}
-    # )
-
     return builder.compile(checkpointer=memory)
 graph = build_agent()
 
-thread = {"configurable": {"thread_id": "1"}}
+thread = {"configurable": {"thread_id": "2"}}
 
+user_input = input("User: ")
+# def stream_graph_updates(user_input: str):
+for event in graph.stream({"messages":[SystemMessage(content=system_promp), HumanMessage(content= user_input)]}, thread, stream_mode="values"):
+    event['messages'][-1].pretty_print()
+        # for key, value in output.items():
+        #     pprint.pprint(f"Output from node '{key}':")
+        #     pprint.pprint("---")
+        #     pprint.pprint(value, indent=2, width=80, depth=None)
+        # pprint.pprint("\n---\n")
 
-def stream_graph_updates(user_input: str):
-    for output in graph.stream({"messages":[SystemMessage(content=system_promp), HumanMessage(content= user_input)]}, thread, stream_mode="update"):
-        for key, value in output.items():
-            pprint.pprint(f"Output from node '{key}':")
-            pprint.pprint("---")
-            pprint.pprint(value, indent=2, width=80, depth=None)
-        pprint.pprint("\n---\n")
-
-stream_graph_updates("error message : E18XP")
+# stream_graph_updates("error message : E18XP")
 # while True:
 #     user_input = input("User: ")
 #     if user_input.lower() in ["quit", "exit", "q"]:

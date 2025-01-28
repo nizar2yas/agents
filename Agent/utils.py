@@ -3,6 +3,8 @@ from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import PGVector
 from langchain.tools.retriever import create_retriever_tool
 from langchain_core.tools import tool
+import sqlite3
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 def get_vector_store(collection_name="X3000_TurboFixer_v3"):
     embeddings = VertexAIEmbeddings(model_name="text-embedding-004", project="swo-trabajo-yrakibi")
@@ -42,6 +44,23 @@ def check_stock(item_name:str) -> int:
     print(item_name)
     return 0
 
+    
+@tool(parse_docstring=True)
+def order_item(item_name:str, supplier_infos: str, quantity:int) -> str:
+    """ 
+    Order the given item in case it doesn't existe the stock 
+
+    Args: 
+        item_name: name of item to be ordered.
+        supplier_infos: supplier contact informations.
+        quantity: number of element to be ordered.
+
+    Returns: 
+        str: recapitulation of the order
+    """
+    recap = f"{quantity} element of {item_name} has been ordred from {supplier_infos}"
+    return recap
+
 @tool(parse_docstring=True)
 def notify_technicien(title: str, criticity: int, message: str) -> str: 
     """
@@ -61,3 +80,8 @@ def notify_technicien(title: str, criticity: int, message: str) -> str:
         str: the state of the notification send
     """
     return "Notification had beed send"
+
+def get_db(db_path='checkpoints.db'):
+    conn = sqlite3.connect(db_path, check_same_thread=False)
+    memory = SqliteSaver(conn)
+    return memory
