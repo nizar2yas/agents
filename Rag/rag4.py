@@ -13,7 +13,6 @@ import uuid
 import asyncio
 from google.cloud import storage
 from langchain_core.documents import Document
-import asyncpg
 
 PROJECT_ID = "x-project-00"
 REGION = "europe-west1"
@@ -90,4 +89,5 @@ def get_partition_document(bucket_name, file_path):
     return (documents,ids)
 
 if __name__ == "__main__":
-    asyncio.run(add_document_to_vdb(PROJECT_ID, REGION, INSTANCE, DATABASE, USER, PASSWORD, BUCKET_NAME, FILE_PATH))
+    a =asyncio.run(add_document_to_vdb(PROJECT_ID, REGION, INSTANCE, DATABASE, USER, PASSWORD, BUCKET_NAME, FILE_PATH))
+    
