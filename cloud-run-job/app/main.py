@@ -27,7 +27,7 @@ INPUT_BUCKET_NAME = os.getenv("INTPUT_BUCKET_NAME", "rag_input")
 OUTPUT_BUCKET_NAME = os.getenv("OUTPUT_BUCKET_NAME", "rag_output_files")
 FILE_PATH = os.getenv("FILE_PATH")
 SECRET_ID = os.getenv("SECRET_ID", "vector_db_secret")
-PASSWORD = os.getenv("password")
+PASSWORD = os.getenv("password","admin")
 
 embeddings = VertexAIEmbeddings(
     model_name="text-embedding-004", project=PROJECT_ID)
@@ -118,8 +118,7 @@ def get_partition_document(client, bucket_name, file_path):
 
 def move_blob(storage_client, bucket_name, blob_name, destination_bucket):
 
-    logger.info(f"moving file {blob_name} from {
-                bucket_name} to {destination_bucket}")
+    logger.info(f"moving file {blob_name} from {bucket_name} to {destination_bucket}")
 
     source_bucket = storage_client.bucket(bucket_name)
     source_blob = source_bucket.blob(blob_name)
