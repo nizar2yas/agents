@@ -193,8 +193,8 @@ The following table lists all replaceable components of the X3000 TurboFixer, in
 **Safety Precautions**: Ensure power is disconnected before handling. Sensor is sensitive; avoid dropping or applying excessive force.
 **Supplier(s) & Contact**: GlobalTech Solutions: +1-555-123-4567, support@globaltechsolutions.com; MechPro Parts: +1-555-987-6543, parts@mechproparts.com
 **What to do in this case**: :
-* 1. notifiy the technicien about the issue 
-* 2. check the stock for the 'XXPSXL'
+* 9. notifiy the technicien about the issue 
+* 10. check the stock for the 'XXPSXL'
 
 #### PLSX
 
