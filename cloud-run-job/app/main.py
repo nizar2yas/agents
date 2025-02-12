@@ -1,8 +1,7 @@
 import os
 import logging
-from langchain_google_cloud_sql_pg import PostgresEngine
 from langchain_google_vertexai import VertexAIEmbeddings
-from langchain_google_cloud_sql_pg import PostgresVectorStore
+from langchain_google_cloud_sql_pg import PostgresVectorStore, PostgresEngine
 from unstructured.partition.md import partition_md
 from unstructured.partition.pdf import partition_pdf
 from unstructured.staging.base import dict_to_elements
@@ -87,8 +86,7 @@ def get_partition_document(client, bucket_name, file_path):
             case ".md":
                 partitioned_elements = partition_md(file=f)
             case _:
-                raise Exception(f"insupported type {
-                                extension}, only 'pdf', and 'md' are supported")
+                raise Exception(f"insupported type { extension}, only 'pdf', and 'md' are supported")
     logger.info("File partitioned.")
 
     elements_dict = [
