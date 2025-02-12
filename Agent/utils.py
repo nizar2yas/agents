@@ -5,6 +5,10 @@ from langchain.tools.retriever import create_retriever_tool
 from langchain_core.tools import tool
 import sqlite3
 from langgraph.checkpoint.sqlite import SqliteSaver
+from langchain_google_cloud_sql_pg import PostgresVectorStore, PostgresEngine
+from langchain_google_vertexai import VertexAIEmbeddings
+from asyncpg.exceptions import UndefinedObjectError
+from sqlalchemy.exc import ProgrammingError
 
 def get_vector_store(collection_name="X3000_TurboFixer_v3"):
     embeddings = VertexAIEmbeddings(model_name="text-embedding-004", project="swo-trabajo-yrakibi")
@@ -85,3 +89,32 @@ def get_db(db_path='checkpoints.db'):
     conn = sqlite3.connect(db_path, check_same_thread=False)
     memory = SqliteSaver(conn)
     return memory
+
+def init_vector_table(engine, table_name):
+    try:
+        engine.init_vectorstore_table(
+            table_name=table_name,
+            # Vector size for VertexAI model(textembedding-gecko@latest)
+            vector_size=768,
+        )
+    except ProgrammingError as e:
+        if hasattr(e, "orig") and hasattr(e.orig, "args") and "DuplicateTableError" in e.orig.args[0]:
+            return
+        else:
+            raise e
+    except UndefinedObjectError as e:
+        raise UndefinedObjectError from e
+
+
+def get_remote_vdb_instance(project_id, region, instance, database, user, password, table_name, embeddings):
+    engine = PostgresEngine.from_instance(
+        project_id=project_id, region=region, instance=instance, database=database, user=user, password=password
+    )
+
+    init_vector_table(engine, table_name)
+
+    return PostgresVectorStore.create_sync(  # Use .create() to initialize an async vector store
+        engine=engine,
+        embedding_service=embeddings,
+        table_name=table_name
+    )

@@ -12,3 +12,4 @@ google-cloud-documentai
 prettytable
 google-cloud-secret-manager
 "psycopg[binary,pool]"
+asyncpg
