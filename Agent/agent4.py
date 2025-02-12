@@ -20,7 +20,6 @@ system_promp = """
 You are an AI assistant at machines' maintenance and reparation.
 you will receive notification code send from the machines, investigate the code and do everything needed to handle it.
 give detailed instruction of what need to be done.
-execute the task in sequence not in parallel.
 """
 
 retriever = get_retrieval_from_vstore()
@@ -69,21 +68,21 @@ graph = build_agent()
 
 thread = {"configurable": {"thread_id": "2"}}
 
-user_input = input("User: ")
-# def stream_graph_updates(user_input: str):
-for event in graph.stream({"messages":[SystemMessage(content=system_promp), HumanMessage(content= user_input)]}, thread, stream_mode="values"):
-    event['messages'][-1].pretty_print()
-        # for key, value in output.items():
-        #     pprint.pprint(f"Output from node '{key}':")
-        #     pprint.pprint("---")
-        #     pprint.pprint(value, indent=2, width=80, depth=None)
-        # pprint.pprint("\n---\n")
+# user_input = input("User: ")
+def stream_graph_updates(user_input: str):
+    for event in graph.stream({"messages":[SystemMessage(content=system_promp), HumanMessage(content= user_input)]}, thread, stream_mode="values"):
+        event['messages'][-1].pretty_print()
+            # for key, value in output.items():
+            #     pprint.pprint(f"Output from node '{key}':")
+            #     pprint.pprint("---")
+            #     pprint.pprint(value, indent=2, width=80, depth=None)
+            # pprint.pprint("\n---\n")
 
 # stream_graph_updates("error message : E18XP")
-# while True:
-#     user_input = input("User: ")
-#     if user_input.lower() in ["quit", "exit", "q"]:
-#         print("Goodbye!")
-#         break
+while True:
+    user_input = input("User: ")
+    if user_input.lower() in ["quit", "exit", "q"]:
+        print("Goodbye!")
+        break
 
-#     stream_graph_updates(user_input)
+    stream_graph_updates(user_input)

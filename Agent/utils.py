@@ -23,9 +23,12 @@ def get_vector_store(collection_name="X3000_TurboFixer_v3"):
     # use_jsonb=True,
     )
 
+
 def get_retrieval_from_vstore(collection_name="X3000_TurboFixer_v3"):
     vector_store = get_vector_store(collection_name)
     return vector_store.as_retriever()
+
+# retriever = get_retrieval_from_vstore()
 
 def get_retriever_tool(retriever):
     return create_retriever_tool(
@@ -46,7 +49,7 @@ def check_stock(item_name:str) -> int:
         int: number of items of the given name in the stock
     """
     print(item_name)
-    return 0
+    return 5
 
     
 @tool(parse_docstring=True)
@@ -118,3 +121,16 @@ def get_remote_vdb_instance(project_id, region, instance, database, user, passwo
         embedding_service=embeddings,
         table_name=table_name
     )
+@tool(parse_docstring=True)
+def retrieve_troubleshooting_guide(query: str):
+    """
+    Search and return information about error code that could occures and how to handle them
+
+    Args:
+        query: containing the error code to be searched
+
+    Returns:
+        str: instructions to be made 
+    """
+    res = retriever.invoke(query)
+    return res
